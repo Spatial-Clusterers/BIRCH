@@ -5,12 +5,14 @@ from math import sqrt
 from operator import add
 
 # FEATURES
-# - This is just a test implementation to get a sense of what the algorithm does!
-# - We've used it for smaller datasets that fit into memory on a single pass
+# - This is a quick test implementation of the BIRCH algorithm (http://www.cs.sfu.ca/cc/459/han/papers/zhang96.pdf)
+# - There's no guarantee that this implements the algorithm correctly.
+# - It was never meant to be used in production environments.
+# - We used it to study how the algorithm reacts to different (smallish) datasets and how to tweak its parameters.
 # - It does not rebuild the tree if it hits a memory boundary
 # - Because of that it works with a fixed T, there is no heuristic for T_(i+1)
-# - Because auf that, it does not consider outliers because there's no tree rebuilding
-# - Overall, it does not do phase 2 to 4!
+# - Hence, it does not consider outliers because there's no tree rebuilding
+# - Overall, it actually is not the whole algorithm, skips phase 2 to 4!
 
 
 ### SETTINGS
