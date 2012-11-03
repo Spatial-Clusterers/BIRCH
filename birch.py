@@ -4,6 +4,10 @@ from datetime import datetime
 from math import sqrt
 from operator import add
 
+# TODO:
+# Need to add ability to read in dataset!
+# Focus on adding Phase 3 of BIRCH, e.g. agglomerative hierarchical clustering. This implementation currently just builds the tree.
+
 # FEATURES
 # - This is a quick test implementation of the BIRCH algorithm (http://www.cs.sfu.ca/cc/459/han/papers/zhang96.pdf)
 # - There's no guarantee that this implements the algorithm correctly.
