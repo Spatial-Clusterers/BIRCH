@@ -1,11 +1,14 @@
-import random
-
 from datetime import datetime
 from math import sqrt
 from operator import add
+import csv
+import sys
+import random
+
+# DONE: Added read in of data set
 
 # TODO:
-# Need to add ability to read in dataset!
+# Change algo's method of calculation, e.g. use lat/lng
 # Focus on adding Phase 3 of BIRCH, e.g. agglomerative hierarchical clustering. This implementation currently just builds the tree.
 
 # FEATURES
@@ -17,26 +20,6 @@ from operator import add
 # - Because of that it works with a fixed T, there is no heuristic for T_(i+1)
 # - Hence, it does not consider outliers because there's no tree rebuilding
 # - Overall, it actually is not the whole algorithm, skips phase 2 to 4!
-
-
-### SETTINGS
-B = 10       # limit the amount of children a node can have 
-            # (the paper has another one especially for leaves. But we'll leave it at that!)
-
-T = 5000     # maximum size (treshold) of a cluster before it has to be split
-
-
-### SAMPLE EXECUTION SETTINGS
-sample_dimensions = 10                  # how many dimensions does our tree have
-
-sample_vectors_fillpercentage = 50      # to which percentage are the vectors filled.
-                                        # at 50% and 10 dimensions our vectors will 
-                                        # on average have a value in 5 dimensions
-                                        # this simulates sparse vectors
-
-num_sample_points = 100                # how many vectors to insert
-
-
 
 # keep a few statistics
 splitcount = 0
@@ -83,6 +66,7 @@ class BaseNode(object):
         min_item    = None
         
         for item in list:
+            
             dist = item.distance(node)
             #if not force:
             #    print "d:",dist,len(node),len(list)
@@ -109,7 +93,7 @@ class BaseNode(object):
         return res
     
     def d2(self,other):
-        #print "\n\nself%s %s\nn: %i other n: %i" % (hash(self), self, self.n,other.n)
+        # print "\n\nself%s %s\nn: %i other n: %i" % (hash(self), self, self.n,other.n)
         return (other.n * self.squared + self.n * other.squared - 2 * (self.ls % other.ls)) / (self.n * other.n)
     
     def d4(self,other):
@@ -425,7 +409,7 @@ class Entry(BaseNode):
         
         vol = (dist/(n*(n-1))) ** 0.5
         
-        #print "vol:",vol
+        # print "vol:",vol
         return vol
     volume = property(testvolume)
     
@@ -438,7 +422,7 @@ class Entry(BaseNode):
         new_squared = self.squared + vector.squared
         
         testrad = self.radius + ((new_ls / new_n).distance(vector))
-        #print "testrad:",testrad
+        # print "testrad:",testrad
         return testrad
     
     @property
@@ -569,43 +553,50 @@ class Vector(dict):
 
 
 if __name__ == '__main__':
+
+    ### SETTINGS
+    B = 10      # limit the amount of children a node can have 
+                # (the paper has another one especially for leaves. But we'll leave it at that!)
     
-    # SMALL 2D SAMPLE (takes ~ 2 seconds on a Intel Core2 Duo 2.5GHz):
-    B = 10
-    T = 35
-    sample_dimensions = 2
-    sample_vectors_fillpercentage = 100
-    num_sample_points = 10000
+    T = 5000    # maximum size (threshold) of a cluster before it has to be split
     
     vectors = []
-    print "creating vectors.. (%i-dimensional, %i%% filled, %i vectors, branch %i, treshold %i)" % \
-                (sample_dimensions,sample_vectors_fillpercentage,num_sample_points,B,T)
+    dimensions = 3
+    fillpercentage = 100
+
+    input_file = "../dataset/noaa-hail-cleaned-index.csv"
+
+    with open(input_file, 'rb') as f:
+        reader = csv.reader(f)
+        totalpoints = 0
+        try:
+            for row in reader:
+                totalpoints += 1
+
+                # if totalpoints < 5000:
+                    
+                v = Vector()    
+                v[0] = int(row[0])      # id of data point
+                v[1] = float(row[16])   # latitude of data point
+                v[2] = float(row[17])   # longitude of data point
+                vectors.append(v)       # add each record
+        except csv.Error as e:
+            sys.exit('file %s, line %d: %s' % (filename, reader.line_num, e))
+
+        print "creating vectors.. (%i-dimensional, %i%% filled, %i vectors, branch %i, threshold %i)" % (dimensions,fillpercentage,totalpoints,B,T)
     
-    # we'll produce random sample points 
-    # note that these points really are sparse vectors!
-    # we're adding random values to random dimensions
-    # so in the end only a few dimensions will have values!
-    for x in range(num_sample_points):
-        v = Vector()
-        hit = False
-        while not hit:
-            for x in range(sample_dimensions):
-                if random.randint(0,100/sample_vectors_fillpercentage) == 0:
-                    hit = True
-                    v[x] = random.randint(0,100)
-        vectors.append(v)
-    
-    # let's measure the computing time
-    start = datetime.now()
+    start = datetime.now()  # Start measuring the computing time
     print "starting clustering..."
     
-    # build the first node - it's our root
+    # Create root of CF tree
     root = Node()
     
-    # insert vector after vector
+    # Insert all vectors
     for v in vectors:
-        # insert this vector to the tree's root
-        root.trickle(v)
+        root.trickle(v) # insert this vector to the tree's root
+
+    # print root.children
     
-    time = datetime.now()-start
-    print "took %s (%.2fms per point)" % (time,(time.seconds*1000+time.microseconds/1000.0)/num_sample_points)
+    time = datetime.now()-start # Stop measuring the computing time
+    print "took %s (%.2fms per point)" % (time,(time.seconds*1000+time.microseconds/1000.0)/totalpoints)
+    print "splitcount: %s, nodecount: %s, entrycount: %s, leafcount: %s" % (splitcount, nodecount, entrycount, leafcount)
