@@ -6,10 +6,9 @@ import sys
 import random
 
 # DONE: Added read in of data set
+#       Tree building successfully
 
-# TODO:
-# Change algo's method of calculation, e.g. use lat/lng
-# Focus on adding Phase 3 of BIRCH, e.g. agglomerative hierarchical clustering. This implementation currently just builds the tree.
+# NOT DONE: Focus on adding Phase 3 of BIRCH, e.g. agglomerative hierarchical clustering. This implementation currently just builds the tree.
 
 # FEATURES
 # - This is a quick test implementation of the BIRCH algorithm (http://www.cs.sfu.ca/cc/459/han/papers/zhang96.pdf)
@@ -21,7 +20,7 @@ import random
 # - Hence, it does not consider outliers because there's no tree rebuilding
 # - Overall, it actually is not the whole algorithm, skips phase 2 to 4!
 
-# keep a few statistics
+# Tracking statistics
 splitcount = 0
 nodecount = 0
 entrycount = 0
@@ -573,13 +572,17 @@ if __name__ == '__main__':
             for row in reader:
                 totalpoints += 1
 
-                # if totalpoints < 5000:
+                if totalpoints < 150000:
                     
-                v = Vector()    
-                v[0] = int(row[0])      # id of data point
-                v[1] = float(row[16])   # latitude of data point
-                v[2] = float(row[17])   # longitude of data point
-                vectors.append(v)       # add each record
+                    v = Vector()    
+                    v[0] = int(row[0])      # id of data point
+                    v[1] = float(row[16])   # latitude of data point
+                    v[2] = float(row[17])   # longitude of data point
+                    vectors.append(v)       # add each record
+
+                elif totalpoints > 150000:
+                    totalpoints -= 1
+
         except csv.Error as e:
             sys.exit('file %s, line %d: %s' % (filename, reader.line_num, e))
 
